@@ -1,8 +1,6 @@
 # goodbooks-10k
 
-This dataset contains six million ratings for ten thousand most popular (with most ratings) books. Ratings go from one to five.
-
-There are also:
+This dataset contains six million ratings for ten thousand most popular (with most ratings) books. There are also:
 
 * books marked to read by the users
 * book metadata (author, year, etc.) 
@@ -10,7 +8,7 @@ There are also:
 
 ## Contents
 
-**ratings.csv** contains ratings sorted by time. It looks like that:
+**ratings.csv** contains ratings sorted by time. It is 69MB and looks like that:
 
 	user_id,book_id,rating
 	1,258,5
@@ -19,7 +17,7 @@ There are also:
 	2,9296,5
 	2,2318,3
 	
-Both book IDs and user IDs are contiguous. For books, they are 1-10000, for users, 1-53424. 	
+Ratings go from one to five. Both book IDs and user IDs are contiguous. For books, they are 1-10000, for users, 1-53424. 	
 
 **to_read.csv** provides IDs of the books marked "to read" by each user, as _user_id,book_id_ pairs, sorted by time. There are close to a million pairs.
 
@@ -41,12 +39,15 @@ In raw XML files, tags look like this:
 
 Here, each tag/shelf is given an ID. **tags.csv** translates tag IDs to names.
 
+Some of these files are quite large, so GitHub won't show their contents online. See `samples` for smaller CSV snippets.
+
 ### goodreads IDs
 
-Each book may have many editions.  _goodreads_book_id_ and _best_book_id_ generally point to the most popular edition of a given book, while goodreads  _work_id_ refers to the book in the abstract sense. _book_id_ in **ratings.csv** maps to _work_id_, not to _goodreads_book_id_, meaning that ratings for different editions are aggregated.
+Each book may have many editions.  _goodreads_book_id_ and _best_book_id_ generally point to the most popular edition of a given book, while goodreads  _work_id_ refers to the book in the abstract sense. 
 
 You can use the goodreads book and work IDs to create URLs as follows:
 
 https://www.goodreads.com/book/show/2767052   
 https://www.goodreads.com/work/editions/2792775  
 
+Note that _book_id_ in **ratings.csv** and **to_read.csv** maps to _work_id_, not to _goodreads_book_id_, meaning that ratings for different editions are aggregated.
