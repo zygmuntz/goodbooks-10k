@@ -1,1 +1,813 @@
-../../data/sample_book.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<GoodreadsResponse>
+  <Request>
+    <authentication>true</authentication>
+      <key><![CDATA[all_men_must_die]]></key>
+    <method><![CDATA[book_show]]></method>
+  </Request>
+  <book>
+  <id>205330</id>
+  <title><![CDATA[There Was an Old Lady Who Swallowed a Fly]]></title>
+  <isbn><![CDATA[0670869392]]></isbn>
+  <isbn13><![CDATA[9780670869398]]></isbn13>
+  <asin><![CDATA[]]></asin>
+  <kindle_asin><![CDATA[]]></kindle_asin>
+  <marketplace_id><![CDATA[]]></marketplace_id>
+  <country_code><![CDATA[GB]]></country_code>
+  <image_url>https://images.gr-assets.com/books/1172674507m/205330.jpg</image_url>
+  <small_image_url>https://images.gr-assets.com/books/1172674507s/205330.jpg</small_image_url>
+  <publication_year></publication_year>
+  <publication_month></publication_month>
+  <publication_day></publication_day>
+  <publisher></publisher>
+  <language_code></language_code>
+  <is_ebook>false</is_ebook>
+  <description></description>
+  <work>
+  <id type="integer">198687</id>
+  <books_count type="integer">11</books_count>
+  <best_book_id type="integer">205330</best_book_id>
+  <reviews_count type="integer">46513</reviews_count>
+  <ratings_sum type="integer">176006</ratings_sum>
+  <ratings_count type="integer">41931</ratings_count>
+  <text_reviews_count type="integer">720</text_reviews_count>
+  <original_publication_year type="integer">1997</original_publication_year>
+  <original_publication_month type="integer" nil="true"/>
+  <original_publication_day type="integer" nil="true"/>
+  <original_title>There Was an Old Lady Who Swallowed a Fly</original_title>
+  <original_language_id type="integer" nil="true"/>
+  <media_type>book</media_type>
+  <rating_dist>5:21808|4:9976|3:7499|2:1917|1:731|total:41931</rating_dist>
+  <desc_user_id type="integer">-10</desc_user_id>
+  <default_chaptering_book_id type="integer" nil="true"/>
+  <default_description_language_code nil="true"/>
+</work>
+  <average_rating>4.20</average_rating>
+  <num_pages><![CDATA[]]></num_pages>
+  <format><![CDATA[]]></format>
+  <edition_information><![CDATA[]]></edition_information>
+  <ratings_count><![CDATA[41896]]></ratings_count>
+  <text_reviews_count><![CDATA[716]]></text_reviews_count>
+  <url><![CDATA[https://www.goodreads.com/book/show/205330.There_Was_an_Old_Lady_Who_Swallowed_a_Fly]]></url>
+  <link><![CDATA[https://www.goodreads.com/book/show/205330.There_Was_an_Old_Lady_Who_Swallowed_a_Fly]]></link>
+  <authors>
+<author>
+<id>90091</id>
+<name>Simms Taback</name>
+<role></role>
+<image_url nophoto='false'>
+<![CDATA[https://images.gr-assets.com/authors/1388179222p5/90091.jpg]]>
+</image_url>
+<small_image_url nophoto='false'>
+<![CDATA[https://images.gr-assets.com/authors/1388179222p2/90091.jpg]]>
+</small_image_url>
+<link><![CDATA[https://www.goodreads.com/author/show/90091.Simms_Taback]]></link>
+<average_rating>4.16</average_rating>
+<ratings_count>59772</ratings_count>
+<text_reviews_count>2238</text_reviews_count>
+</author>
+</authors>
+
+    <reviews_widget>
+      <![CDATA[
+        <style>
+  #goodreads-widget {
+    font-family: georgia, serif;
+    padding: 18px 0;
+    width:565px;
+  }
+  #goodreads-widget h1 {
+    font-weight:normal;
+    font-size: 16px;
+    border-bottom: 1px solid #BBB596;
+    margin-bottom: 0;
+  }
+  #goodreads-widget a {
+    text-decoration: none;
+    color:#660;
+  }
+  iframe{
+    background-color: #fff;
+  }
+  #goodreads-widget a:hover { text-decoration: underline; }
+  #goodreads-widget a:active {
+    color:#660;
+  }
+  #gr_footer {
+    width: 100%;
+    border-top: 1px solid #BBB596;
+    text-align: right;
+  }
+  #goodreads-widget .gr_branding{
+    color: #382110;
+    font-size: 11px;
+    text-decoration: none;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  }
+</style>
+<div id="goodreads-widget">
+  <div id="gr_header"><h1><a rel="nofollow" href="https://www.goodreads.com/book/show/205330.There_Was_an_Old_Lady_Who_Swallowed_a_Fly">There Was an Old Lady Who Swallowed a Fly Reviews</a></h1></div>
+  <iframe id="the_iframe" src="https://www.goodreads.com/api/reviews_widget_iframe?did=DEVELOPER_ID&amp;format=html&amp;isbn=0670869392&amp;links=660&amp;min_rating=&amp;review_back=fff&amp;stars=000&amp;text=000" width="565" height="400" frameborder="0"></iframe>
+  <div id="gr_footer">
+    <a class="gr_branding" target="_blank" rel="nofollow" href="https://www.goodreads.com/book/show/205330.There_Was_an_Old_Lady_Who_Swallowed_a_Fly?utm_medium=api&amp;utm_source=reviews_widget">Reviews from Goodreads.com</a>
+  </div>
+</div>
+
+      ]]>
+    </reviews_widget>
+  <popular_shelves>
+      <shelf name="to-read" count="3504"/>
+      <shelf name="picture-books" count="397"/>
+      <shelf name="childrens" count="226"/>
+      <shelf name="children-s-books" count="213"/>
+      <shelf name="children" count="149"/>
+      <shelf name="children-s" count="139"/>
+      <shelf name="caldecott" count="110"/>
+      <shelf name="picture-book" count="103"/>
+      <shelf name="kids" count="90"/>
+      <shelf name="childrens-books" count="89"/>
+      <shelf name="poetry" count="70"/>
+      <shelf name="kids-books" count="63"/>
+      <shelf name="childhood" count="54"/>
+      <shelf name="animals" count="53"/>
+      <shelf name="humor" count="47"/>
+      <shelf name="currently-reading" count="44"/>
+      <shelf name="fiction" count="44"/>
+      <shelf name="rhyming" count="39"/>
+      <shelf name="favorites" count="35"/>
+      <shelf name="children-s-lit" count="34"/>
+      <shelf name="children-books" count="26"/>
+      <shelf name="caldecott-honor" count="26"/>
+      <shelf name="fantasy" count="24"/>
+      <shelf name="children-s-literature" count="23"/>
+      <shelf name="sequencing" count="22"/>
+      <shelf name="childhood-favorites" count="20"/>
+      <shelf name="children-s-picture-books" count="19"/>
+      <shelf name="rhyme" count="18"/>
+      <shelf name="classics" count="18"/>
+      <shelf name="storytime" count="17"/>
+      <shelf name="picture" count="16"/>
+      <shelf name="childhood-books" count="16"/>
+      <shelf name="preschool" count="16"/>
+      <shelf name="caldecott-books" count="16"/>
+      <shelf name="elementary" count="15"/>
+      <shelf name="repetition" count="14"/>
+      <shelf name="kid-s-books" count="14"/>
+      <shelf name="ece-3601" count="13"/>
+      <shelf name="kid-books" count="13"/>
+      <shelf name="funny" count="13"/>
+      <shelf name="pre-2000" count="13"/>
+      <shelf name="picturebooks" count="13"/>
+      <shelf name="books-i-own" count="13"/>
+      <shelf name="traditional-literature" count="12"/>
+      <shelf name="read-alouds" count="12"/>
+      <shelf name="kindergarten" count="12"/>
+      <shelf name="early-childhood" count="11"/>
+      <shelf name="food" count="11"/>
+      <shelf name="edrd-314" count="10"/>
+      <shelf name="childrens-literature" count="10"/>
+      <shelf name="classic" count="10"/>
+      <shelf name="read-aloud" count="10"/>
+      <shelf name="sequence" count="10"/>
+      <shelf name="childrens-picture-books" count="10"/>
+      <shelf name="1st-grade" count="10"/>
+      <shelf name="music" count="10"/>
+      <shelf name="imagination" count="9"/>
+      <shelf name="owned" count="9"/>
+      <shelf name="childhood-reads" count="8"/>
+      <shelf name="library" count="8"/>
+      <shelf name="fun" count="8"/>
+      <shelf name="school" count="8"/>
+      <shelf name="youth" count="8"/>
+      <shelf name="caldecott-winners" count="8"/>
+      <shelf name="default" count="7"/>
+      <shelf name="children-s-read" count="7"/>
+      <shelf name="my-childhood" count="7"/>
+      <shelf name="nostalgia" count="7"/>
+      <shelf name="children-read" count="7"/>
+      <shelf name="children-s-book" count="7"/>
+      <shelf name="juvenile" count="7"/>
+      <shelf name="award-winners" count="7"/>
+      <shelf name="read-as-a-child" count="7"/>
+      <shelf name="caldecott-honors" count="7"/>
+      <shelf name="baby-books" count="7"/>
+      <shelf name="caldecott-award" count="7"/>
+      <shelf name="childrens-lit" count="7"/>
+      <shelf name="classroom-books" count="6"/>
+      <shelf name="kiddos" count="6"/>
+      <shelf name="k-2" count="6"/>
+      <shelf name="bugs" count="6"/>
+      <shelf name="folklore" count="6"/>
+      <shelf name="phonemic-awareness" count="6"/>
+      <shelf name="kid-lit" count="6"/>
+      <shelf name="read-as-a-kid" count="6"/>
+      <shelf name="caldecott-medal" count="6"/>
+      <shelf name="teaching" count="6"/>
+      <shelf name="shelfari-favorites" count="5"/>
+      <shelf name="classroom-library" count="5"/>
+      <shelf name="favorite-children-s-books" count="5"/>
+      <shelf name="predictable" count="5"/>
+      <shelf name="science" count="5"/>
+      <shelf name="caldecott-challenge" count="5"/>
+      <shelf name="children-picture-books" count="5"/>
+      <shelf name="songs" count="5"/>
+      <shelf name="to-buy" count="5"/>
+      <shelf name="repetitive-text" count="5"/>
+      <shelf name="el230" count="4"/>
+      <shelf name="sing-along" count="4"/>
+      <shelf name="children-s-fiction" count="4"/>
+  </popular_shelves>
+  <book_links>
+    <book_link>
+  <id>8</id>
+  <name>Libraries</name>
+  <link>https://www.goodreads.com/book_link/follow/8</link>
+</book_link>
+
+  </book_links>
+  <buy_links>
+    <buy_link>
+<id>1</id>
+<name>Amazon</name>
+<link>https://www.goodreads.com/book_link/follow/1</link>
+</buy_link>
+<buy_link>
+<id>10</id>
+<name>Audible</name>
+<link>https://www.goodreads.com/book_link/follow/10</link>
+</buy_link>
+<buy_link>
+<id>3</id>
+<name>Barnes &amp; Noble</name>
+<link>https://www.goodreads.com/book_link/follow/3</link>
+</buy_link>
+<buy_link>
+<id>1027</id>
+<name>Kobo</name>
+<link>https://www.goodreads.com/book_link/follow/1027</link>
+</buy_link>
+<buy_link>
+<id>2102</id>
+<name>Apple iBooks</name>
+<link>https://www.goodreads.com/book_link/follow/2102</link>
+</buy_link>
+<buy_link>
+<id>8036</id>
+<name>Google Play</name>
+<link>https://www.goodreads.com/book_link/follow/8036</link>
+</buy_link>
+<buy_link>
+<id>4</id>
+<name>Abebooks</name>
+<link>https://www.goodreads.com/book_link/follow/4</link>
+</buy_link>
+<buy_link>
+<id>882</id>
+<name>Book Depository</name>
+<link>https://www.goodreads.com/book_link/follow/882</link>
+</buy_link>
+<buy_link>
+<id>9</id>
+<name>Indigo</name>
+<link>https://www.goodreads.com/book_link/follow/9</link>
+</buy_link>
+<buy_link>
+<id>2</id>
+<name>Half.com</name>
+<link>https://www.goodreads.com/book_link/follow/2</link>
+</buy_link>
+<buy_link>
+<id>5</id>
+<name>Alibris</name>
+<link>https://www.goodreads.com/book_link/follow/5</link>
+</buy_link>
+<buy_link>
+<id>107</id>
+<name>Better World Books</name>
+<link>https://www.goodreads.com/book_link/follow/107</link>
+</buy_link>
+<buy_link>
+<id>7</id>
+<name>IndieBound</name>
+<link>https://www.goodreads.com/book_link/follow/7</link>
+</buy_link>
+
+  </buy_links>
+  <series_works>
+    <series_work>
+<id>205717</id>
+<user_position></user_position>
+<series>
+<id>52791</id>
+<title>
+<![CDATA[
+    Books With Holes
+]]>
+</title>
+<description>
+<![CDATA[
+]]>
+</description>
+<note>
+<![CDATA[
+]]>
+</note>
+<series_works_count>1</series_works_count>
+<primary_work_count>1</primary_work_count>
+<numbered>false</numbered>
+</series>
+
+</series_work>
+
+  </series_works>
+  <similar_books>
+          <book>
+<id>308238</id>
+<title><![CDATA[Hot Air: The (Mostly) True Story of the First Hot-Air Balloon Ride]]></title>
+<title_without_series><![CDATA[Hot Air: The (Mostly) True Story of the First Hot-Air Balloon Ride]]></title_without_series>
+<link><![CDATA[https://www.goodreads.com/book/show/308238.Hot_Air]]></link>
+<small_image_url><![CDATA[https://s.gr-assets.com/assets/nophoto/book/50x75-a91bf249278a81aabab721ef782c4a74.png]]></small_image_url>
+<image_url><![CDATA[https://s.gr-assets.com/assets/nophoto/book/111x148-bcc042a9c91a29c1d680899eff700a03.png]]></image_url>
+<num_pages></num_pages>
+<work>
+<id>299195</id>
+</work>
+<isbn>0689826427</isbn>
+<isbn13>9780689826429</isbn13>
+<average_rating>3.79</average_rating>
+<ratings_count>1119</ratings_count>
+<publication_year></publication_year>
+<publication_month></publication_month>
+<publication_day></publication_day>
+<authors>
+<author>
+<id>89281</id>
+<name>Marjorie Priceman</name>
+<link><![CDATA[https://www.goodreads.com/author/show/89281.Marjorie_Priceman]]></link>
+</author>
+</authors>
+</book>
+
+          <book>
+<id>1062516</id>
+<title>No, David!</title>
+<title_without_series>No, David!</title_without_series>
+<link><![CDATA[https://www.goodreads.com/book/show/1062516.No_David_]]></link>
+<small_image_url><![CDATA[https://images.gr-assets.com/books/1360058223s/1062516.jpg]]></small_image_url>
+<image_url><![CDATA[https://images.gr-assets.com/books/1360058223m/1062516.jpg]]></image_url>
+<num_pages></num_pages>
+<work>
+<id>562143</id>
+</work>
+<isbn>0590930028</isbn>
+<isbn13>9780590930024</isbn13>
+<average_rating>4.11</average_rating>
+<ratings_count>37203</ratings_count>
+<publication_year></publication_year>
+<publication_month></publication_month>
+<publication_day></publication_day>
+<authors>
+<author>
+<id>21346</id>
+<name>David Shannon</name>
+<link><![CDATA[https://www.goodreads.com/author/show/21346.David_Shannon]]></link>
+</author>
+</authors>
+</book>
+
+          <book>
+<id>1507001</id>
+<title>The Stray Dog</title>
+<title_without_series>The Stray Dog</title_without_series>
+<link><![CDATA[https://www.goodreads.com/book/show/1507001.The_Stray_Dog]]></link>
+<small_image_url><![CDATA[https://images.gr-assets.com/books/1267291311s/1507001.jpg]]></small_image_url>
+<image_url><![CDATA[https://images.gr-assets.com/books/1267291311m/1507001.jpg]]></image_url>
+<num_pages>32</num_pages>
+<work>
+<id>1498528</id>
+</work>
+<isbn>0439442540</isbn>
+<isbn13>9780439442541</isbn13>
+<average_rating>3.99</average_rating>
+<ratings_count>2353</ratings_count>
+<publication_year></publication_year>
+<publication_month></publication_month>
+<publication_day></publication_day>
+<authors>
+<author>
+<id>34161</id>
+<name>Marc Simont</name>
+<link><![CDATA[https://www.goodreads.com/author/show/34161.Marc_Simont]]></link>
+</author>
+</authors>
+</book>
+
+          <book>
+<id>1415026</id>
+<title>First the Egg</title>
+<title_without_series>First the Egg</title_without_series>
+<link><![CDATA[https://www.goodreads.com/book/show/1415026.First_the_Egg]]></link>
+<small_image_url><![CDATA[https://images.gr-assets.com/books/1317064748s/1415026.jpg]]></small_image_url>
+<image_url><![CDATA[https://images.gr-assets.com/books/1317064748m/1415026.jpg]]></image_url>
+<num_pages>28</num_pages>
+<work>
+<id>1405371</id>
+</work>
+<isbn>1596432721</isbn>
+<isbn13>9781596432727</isbn13>
+<average_rating>4.08</average_rating>
+<ratings_count>4371</ratings_count>
+<publication_year></publication_year>
+<publication_month></publication_month>
+<publication_day></publication_day>
+<authors>
+<author>
+<id>99360</id>
+<name>Laura Vaccaro Seeger</name>
+<link><![CDATA[https://www.goodreads.com/author/show/99360.Laura_Vaccaro_Seeger]]></link>
+</author>
+</authors>
+</book>
+
+          <book>
+<id>375902</id>
+<title>Inch by Inch</title>
+<title_without_series>Inch by Inch</title_without_series>
+<link><![CDATA[https://www.goodreads.com/book/show/375902.Inch_by_Inch]]></link>
+<small_image_url><![CDATA[https://images.gr-assets.com/books/1474268454s/375902.jpg]]></small_image_url>
+<image_url><![CDATA[https://images.gr-assets.com/books/1474268454m/375902.jpg]]></image_url>
+<num_pages>32</num_pages>
+<work>
+<id>3350640</id>
+</work>
+<isbn>0688132839</isbn>
+<isbn13>9780688132835</isbn13>
+<average_rating>4.06</average_rating>
+<ratings_count>5792</ratings_count>
+<publication_year>1995</publication_year>
+<publication_month>9</publication_month>
+<publication_day>21</publication_day>
+<authors>
+<author>
+<id>32804</id>
+<name>Leo Lionni</name>
+<link><![CDATA[https://www.goodreads.com/author/show/32804.Leo_Lionni]]></link>
+</author>
+</authors>
+</book>
+
+          <book>
+<id>235846</id>
+<title>A Child&apos;s Calendar</title>
+<title_without_series>A Child&apos;s Calendar</title_without_series>
+<link><![CDATA[https://www.goodreads.com/book/show/235846.A_Child_s_Calendar]]></link>
+<small_image_url><![CDATA[https://s.gr-assets.com/assets/nophoto/book/50x75-a91bf249278a81aabab721ef782c4a74.png]]></small_image_url>
+<image_url><![CDATA[https://s.gr-assets.com/assets/nophoto/book/111x148-bcc042a9c91a29c1d680899eff700a03.png]]></image_url>
+<num_pages>32</num_pages>
+<work>
+<id>2429421</id>
+</work>
+<isbn>0823417662</isbn>
+<isbn13>9780823417667</isbn13>
+<average_rating>4.02</average_rating>
+<ratings_count>906</ratings_count>
+<publication_year>2002</publication_year>
+<publication_month>9</publication_month>
+<publication_day>1</publication_day>
+<authors>
+<author>
+<id>6878</id>
+<name>John Updike</name>
+<link><![CDATA[https://www.goodreads.com/author/show/6878.John_Updike]]></link>
+</author>
+</authors>
+</book>
+
+          <book>
+<id>162720</id>
+<title><![CDATA[Ella Sarah Gets Dressed (Caldecott Honor Book)]]></title>
+<title_without_series>Ella Sarah Gets Dressed</title_without_series>
+<link><![CDATA[https://www.goodreads.com/book/show/162720.Ella_Sarah_Gets_Dressed]]></link>
+<small_image_url><![CDATA[https://images.gr-assets.com/books/1328876188s/162720.jpg]]></small_image_url>
+<image_url><![CDATA[https://images.gr-assets.com/books/1328876188m/162720.jpg]]></image_url>
+<num_pages></num_pages>
+<work>
+<id>157067</id>
+</work>
+<isbn>0152164138</isbn>
+<isbn13>9780152164133</isbn13>
+<average_rating>3.75</average_rating>
+<ratings_count>1830</ratings_count>
+<publication_year></publication_year>
+<publication_month></publication_month>
+<publication_day></publication_day>
+<authors>
+<author>
+<id>28385</id>
+<name>Margaret Chodos-Irvine</name>
+<link><![CDATA[https://www.goodreads.com/author/show/28385.Margaret_Chodos_Irvine]]></link>
+</author>
+</authors>
+</book>
+
+          <book>
+<id>949709</id>
+<title><![CDATA[There Was an Old Lady Who Swallowed a Fly (Classic Books) There Was an Old Lady Who Swallowed a Fly]]></title>
+<title_without_series><![CDATA[There Was an Old Lady Who Swallowed a Fly (Classic Books) There Was an Old Lady Who Swallowed a Fly]]></title_without_series>
+<link><![CDATA[https://www.goodreads.com/book/show/949709.There_Was_an_Old_Lady_Who_Swallowed_a_Fly_Classic_Books_There_Was_an_Old_Lady_Who_Swallowed_a_Fly]]></link>
+<small_image_url><![CDATA[https://images.gr-assets.com/books/1413746503s/949709.jpg]]></small_image_url>
+<image_url><![CDATA[https://images.gr-assets.com/books/1413746503m/949709.jpg]]></image_url>
+<num_pages>14</num_pages>
+<work>
+<id>1224619</id>
+</work>
+<isbn>0859537277</isbn>
+<isbn13>9780859537278</isbn13>
+<average_rating>4.20</average_rating>
+<ratings_count>26649</ratings_count>
+<publication_year></publication_year>
+<publication_month></publication_month>
+<publication_day></publication_day>
+<authors>
+<author>
+<id>61561</id>
+<name>Pam Adams</name>
+<link><![CDATA[https://www.goodreads.com/author/show/61561.Pam_Adams]]></link>
+</author>
+</authors>
+</book>
+
+          <book>
+<id>53628</id>
+<title>Seven Blind Mice</title>
+<title_without_series>Seven Blind Mice</title_without_series>
+<link><![CDATA[https://www.goodreads.com/book/show/53628.Seven_Blind_Mice]]></link>
+<small_image_url><![CDATA[https://images.gr-assets.com/books/1360250193s/53628.jpg]]></small_image_url>
+<image_url><![CDATA[https://images.gr-assets.com/books/1360250193m/53628.jpg]]></image_url>
+<num_pages></num_pages>
+<work>
+<id>3050713</id>
+</work>
+<isbn>0698118952</isbn>
+<isbn13>9780698118959</isbn13>
+<average_rating>4.18</average_rating>
+<ratings_count>6812</ratings_count>
+<publication_year></publication_year>
+<publication_month></publication_month>
+<publication_day></publication_day>
+<authors>
+<author>
+<id>15420</id>
+<name>Ed Young</name>
+<link><![CDATA[https://www.goodreads.com/author/show/15420.Ed_Young]]></link>
+</author>
+</authors>
+</book>
+
+          <book>
+<id>246936</id>
+<title>Yo! Yes?</title>
+<title_without_series>Yo! Yes?</title_without_series>
+<link><![CDATA[https://www.goodreads.com/book/show/246936.Yo_Yes_]]></link>
+<small_image_url><![CDATA[https://s.gr-assets.com/assets/nophoto/book/50x75-a91bf249278a81aabab721ef782c4a74.png]]></small_image_url>
+<image_url><![CDATA[https://s.gr-assets.com/assets/nophoto/book/111x148-bcc042a9c91a29c1d680899eff700a03.png]]></image_url>
+<num_pages>32</num_pages>
+<work>
+<id>1715180</id>
+</work>
+<isbn>0439921856</isbn>
+<isbn13>9780439921855</isbn13>
+<average_rating>3.88</average_rating>
+<ratings_count>4505</ratings_count>
+<publication_year>2007</publication_year>
+<publication_month>1</publication_month>
+<publication_day>1</publication_day>
+<authors>
+<author>
+<id>28939</id>
+<name>Chris Raschka</name>
+<link><![CDATA[https://www.goodreads.com/author/show/28939.Chris_Raschka]]></link>
+</author>
+</authors>
+</book>
+
+          <book>
+<id>826582</id>
+<title>If You Take a Mouse to School</title>
+<title_without_series>If You Take a Mouse to School</title_without_series>
+<link><![CDATA[https://www.goodreads.com/book/show/826582.If_You_Take_a_Mouse_to_School]]></link>
+<small_image_url><![CDATA[https://s.gr-assets.com/assets/nophoto/book/50x75-a91bf249278a81aabab721ef782c4a74.png]]></small_image_url>
+<image_url><![CDATA[https://s.gr-assets.com/assets/nophoto/book/111x148-bcc042a9c91a29c1d680899eff700a03.png]]></image_url>
+<num_pages>32</num_pages>
+<work>
+<id>976480</id>
+</work>
+<isbn>0060283289</isbn>
+<isbn13>9780060283285</isbn13>
+<average_rating>4.26</average_rating>
+<ratings_count>32525</ratings_count>
+<publication_year>2002</publication_year>
+<publication_month>7</publication_month>
+<publication_day>16</publication_day>
+<authors>
+<author>
+<id>87184</id>
+<name>Laura Joffe Numeroff</name>
+<link><![CDATA[https://www.goodreads.com/author/show/87184.Laura_Joffe_Numeroff]]></link>
+</author>
+</authors>
+</book>
+
+          <book>
+<id>1065303</id>
+<title>Noah&apos;s Ark</title>
+<title_without_series>Noah&apos;s Ark</title_without_series>
+<link><![CDATA[https://www.goodreads.com/book/show/1065303.Noah_s_Ark]]></link>
+<small_image_url><![CDATA[https://s.gr-assets.com/assets/nophoto/book/50x75-a91bf249278a81aabab721ef782c4a74.png]]></small_image_url>
+<image_url><![CDATA[https://s.gr-assets.com/assets/nophoto/book/111x148-bcc042a9c91a29c1d680899eff700a03.png]]></image_url>
+<num_pages>40</num_pages>
+<work>
+<id>2324758</id>
+</work>
+<isbn>1587172011</isbn>
+<isbn13>9781587172014</isbn13>
+<average_rating>4.24</average_rating>
+<ratings_count>1280</ratings_count>
+<publication_year>2002</publication_year>
+<publication_month>9</publication_month>
+<publication_day>1</publication_day>
+<authors>
+<author>
+<id>70868</id>
+<name>Jerry Pinkney</name>
+<link><![CDATA[https://www.goodreads.com/author/show/70868.Jerry_Pinkney]]></link>
+</author>
+</authors>
+</book>
+
+          <book>
+<id>1767779</id>
+<title><![CDATA[Five Little Monkeys Jumping on the Bed]]></title>
+<title_without_series><![CDATA[Five Little Monkeys Jumping on the Bed]]></title_without_series>
+<link><![CDATA[https://www.goodreads.com/book/show/1767779.Five_Little_Monkeys_Jumping_on_the_Bed]]></link>
+<small_image_url><![CDATA[https://s.gr-assets.com/assets/nophoto/book/50x75-a91bf249278a81aabab721ef782c4a74.png]]></small_image_url>
+<image_url><![CDATA[https://s.gr-assets.com/assets/nophoto/book/111x148-bcc042a9c91a29c1d680899eff700a03.png]]></image_url>
+<num_pages>32</num_pages>
+<work>
+<id>1970335</id>
+</work>
+<isbn>0899197698</isbn>
+<isbn13>9780899197692</isbn13>
+<average_rating>4.09</average_rating>
+<ratings_count>25509</ratings_count>
+<publication_year>1989</publication_year>
+<publication_month>3</publication_month>
+<publication_day>20</publication_day>
+<authors>
+<author>
+<id>4399</id>
+<name>Eileen Christelow</name>
+<link><![CDATA[https://www.goodreads.com/author/show/4399.Eileen_Christelow]]></link>
+</author>
+</authors>
+</book>
+
+          <book>
+<id>722547</id>
+<title>The Paperboy</title>
+<title_without_series>The Paperboy</title_without_series>
+<link><![CDATA[https://www.goodreads.com/book/show/722547.The_Paperboy]]></link>
+<small_image_url><![CDATA[https://images.gr-assets.com/books/1328840932s/722547.jpg]]></small_image_url>
+<image_url><![CDATA[https://images.gr-assets.com/books/1328840932m/722547.jpg]]></image_url>
+<num_pages>32</num_pages>
+<work>
+<id>2972993</id>
+</work>
+<isbn>0531071391</isbn>
+<isbn13>9780531071397</isbn13>
+<average_rating>3.98</average_rating>
+<ratings_count>2669</ratings_count>
+<publication_year>1999</publication_year>
+<publication_month>9</publication_month>
+<publication_day>1</publication_day>
+<authors>
+<author>
+<id>33280</id>
+<name>Dav Pilkey</name>
+<link><![CDATA[https://www.goodreads.com/author/show/33280.Dav_Pilkey]]></link>
+</author>
+</authors>
+</book>
+
+          <book>
+<id>351530</id>
+<title><![CDATA[What Do You Do With a Tail Like This?]]></title>
+<title_without_series><![CDATA[What Do You Do With a Tail Like This?]]></title_without_series>
+<link><![CDATA[https://www.goodreads.com/book/show/351530.What_Do_You_Do_With_a_Tail_Like_This_]]></link>
+<small_image_url><![CDATA[https://s.gr-assets.com/assets/nophoto/book/50x75-a91bf249278a81aabab721ef782c4a74.png]]></small_image_url>
+<image_url><![CDATA[https://s.gr-assets.com/assets/nophoto/book/111x148-bcc042a9c91a29c1d680899eff700a03.png]]></image_url>
+<num_pages></num_pages>
+<work>
+<id>692587</id>
+</work>
+<isbn>0439703840</isbn>
+<isbn13>9780439703840</isbn13>
+<average_rating>4.13</average_rating>
+<ratings_count>6323</ratings_count>
+<publication_year>2003</publication_year>
+<publication_month></publication_month>
+<publication_day></publication_day>
+<authors>
+<author>
+<id>27541</id>
+<name>Steve Jenkins</name>
+<link><![CDATA[https://www.goodreads.com/author/show/27541.Steve_Jenkins]]></link>
+</author>
+</authors>
+</book>
+
+          <book>
+<id>1918694</id>
+<title>The Graphic Alphabet</title>
+<title_without_series>The Graphic Alphabet</title_without_series>
+<link><![CDATA[https://www.goodreads.com/book/show/1918694.The_Graphic_Alphabet]]></link>
+<small_image_url><![CDATA[https://images.gr-assets.com/books/1360058152s/1918694.jpg]]></small_image_url>
+<image_url><![CDATA[https://images.gr-assets.com/books/1360058152m/1918694.jpg]]></image_url>
+<num_pages>32</num_pages>
+<work>
+<id>1920770</id>
+</work>
+<isbn>0531360016</isbn>
+<isbn13>9780531360019</isbn13>
+<average_rating>3.90</average_rating>
+<ratings_count>668</ratings_count>
+<publication_year>1996</publication_year>
+<publication_month>9</publication_month>
+<publication_day>1</publication_day>
+<authors>
+<author>
+<id>309864</id>
+<name>David Pelletier</name>
+<link><![CDATA[https://www.goodreads.com/author/show/309864.David_Pelletier]]></link>
+</author>
+</authors>
+</book>
+
+          <book>
+<id>1888530</id>
+<title>Color Zoo</title>
+<title_without_series>Color Zoo</title_without_series>
+<link><![CDATA[https://www.goodreads.com/book/show/1888530.Color_Zoo]]></link>
+<small_image_url><![CDATA[https://s.gr-assets.com/assets/nophoto/book/50x75-a91bf249278a81aabab721ef782c4a74.png]]></small_image_url>
+<image_url><![CDATA[https://s.gr-assets.com/assets/nophoto/book/111x148-bcc042a9c91a29c1d680899eff700a03.png]]></image_url>
+<num_pages>40</num_pages>
+<work>
+<id>1889813</id>
+</work>
+<isbn>0397322593</isbn>
+<isbn13>9780397322596</isbn13>
+<average_rating>3.95</average_rating>
+<ratings_count>2518</ratings_count>
+<publication_year>1989</publication_year>
+<publication_month>4</publication_month>
+<publication_day>4</publication_day>
+<authors>
+<author>
+<id>10950</id>
+<name>Lois Ehlert</name>
+<link><![CDATA[https://www.goodreads.com/author/show/10950.Lois_Ehlert]]></link>
+</author>
+</authors>
+</book>
+
+          <book>
+<id>2427936</id>
+<title>How I Learned Geography</title>
+<title_without_series>How I Learned Geography</title_without_series>
+<link><![CDATA[https://www.goodreads.com/book/show/2427936.How_I_Learned_Geography]]></link>
+<small_image_url><![CDATA[https://s.gr-assets.com/assets/nophoto/book/50x75-a91bf249278a81aabab721ef782c4a74.png]]></small_image_url>
+<image_url><![CDATA[https://s.gr-assets.com/assets/nophoto/book/111x148-bcc042a9c91a29c1d680899eff700a03.png]]></image_url>
+<num_pages></num_pages>
+<work>
+<id>2435123</id>
+</work>
+<isbn>0374334994</isbn>
+<isbn13>9780374334994</isbn13>
+<average_rating>4.03</average_rating>
+<ratings_count>2075</ratings_count>
+<publication_year></publication_year>
+<publication_month></publication_month>
+<publication_day></publication_day>
+<authors>
+<author>
+<id>33140</id>
+<name>Uri Shulevitz</name>
+<link><![CDATA[https://www.goodreads.com/author/show/33140.Uri_Shulevitz]]></link>
+</author>
+</authors>
+</book>
+
+  </similar_books>
+</book>
+
+</GoodreadsResponse>
