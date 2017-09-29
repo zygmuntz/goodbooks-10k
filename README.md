@@ -6,9 +6,9 @@ This dataset contains six million ratings for ten thousand most popular (with mo
 * book metadata (author, year, etc.) 
 * tags/shelves/genres
 
-### Access
+## Access
 
-Some of these files are quite large, so GitHub won't show their contents online. See `samples/` for smaller CSV snippets.
+Some of these files are quite large, so GitHub won't show their contents online. See [samples/](samples/) for smaller CSV snippets.
 
 Open the [notebook](quick_look.ipynb) for a quick look at the data.
 
