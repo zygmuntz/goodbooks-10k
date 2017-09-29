@@ -23,6 +23,14 @@ Ratings go from one to five. Both book IDs and user IDs are contiguous. For book
 
 **books.csv** has metadata for each book (goodreads IDs, authors, title, average rating, etc.). The metadata have been extracted from goodreads XML files, available in `books_xml`.
 
+Some of these files are quite large, so GitHub won't show their contents online. See `samples` for smaller CSV snippets.
+
+Download individual zipped files from [releases](https://github.com/zygmuntz/goodbooks-10k/releases).
+
+See the [notebook](quick_look.ipynb) for a quick look.
+
+### Tags
+
 **book_tags.csv** contains tags/shelves/genres assigned by users to books. Tags in this file are represented by their IDs. They are sorted by _goodreads_book_id_ ascending and _count_ descending. 
 
 In raw XML files, tags look like this:
@@ -38,8 +46,6 @@ In raw XML files, tags look like this:
 	</popular_shelves>
 
 Here, each tag/shelf is given an ID. **tags.csv** translates tag IDs to names.
-
-Some of these files are quite large, so GitHub won't show their contents online. See `samples` for smaller CSV snippets.
 
 ### goodreads IDs
 
