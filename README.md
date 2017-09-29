@@ -6,6 +6,16 @@ This dataset contains six million ratings for ten thousand most popular (with mo
 * book metadata (author, year, etc.) 
 * tags/shelves/genres
 
+### Access
+
+Some of these files are quite large, so GitHub won't show their contents online. See `samples/` for smaller CSV snippets.
+
+Open the [notebook](quick_look.ipynb) for a quick look at the data.
+
+Download individual zipped files from [releases](https://github.com/zygmuntz/goodbooks-10k/releases).
+
+The dataset is accessible from [Spotlight](https://maciejkula.github.io/spotlight/datasets/goodbooks.html), recommender software based on PyTorch.
+
 ## Contents
 
 **ratings.csv** contains ratings sorted by time. It is 69MB and looks like that:
@@ -22,12 +32,6 @@ Ratings go from one to five. Both book IDs and user IDs are contiguous. For book
 **to_read.csv** provides IDs of the books marked "to read" by each user, as _user_id,book_id_ pairs, sorted by time. There are close to a million pairs.
 
 **books.csv** has metadata for each book (goodreads IDs, authors, title, average rating, etc.). The metadata have been extracted from goodreads XML files, available in `books_xml`.
-
-Some of these files are quite large, so GitHub won't show their contents online. See `samples` for smaller CSV snippets.
-
-Download individual zipped files from [releases](https://github.com/zygmuntz/goodbooks-10k/releases).
-
-See the [notebook](quick_look.ipynb) for a quick look.
 
 ### Tags
 
