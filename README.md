@@ -10,9 +10,7 @@ This dataset contains six million ratings for ten thousand most popular (with mo
 
 Some of these files are quite large, so GitHub won't show their contents online. See [samples/](samples/) for smaller CSV snippets.
 
-Open the [notebook](quick_look.ipynb) for a quick look at the data.
-
-Download individual zipped files from [releases](https://github.com/zygmuntz/goodbooks-10k/releases).
+Open the [notebook](quick_look.ipynb) for a quick look at the data. Download individual zipped files from [releases](https://github.com/zygmuntz/goodbooks-10k/releases).
 
 The dataset is accessible from [Spotlight](https://maciejkula.github.io/spotlight/datasets/goodbooks.html), recommender software based on PyTorch.
 
