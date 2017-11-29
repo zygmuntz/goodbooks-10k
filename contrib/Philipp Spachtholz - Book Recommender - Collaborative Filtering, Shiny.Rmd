@@ -1,0 +1,1096 @@
+---
+title: "Book Recommender"
+subtitle: "Exploratory Analysis & Collaborative Filtering & Shiny App"
+output:
+html_document:
+theme: cosmo
+---
+
+Have you ever wondered which book to read next? I often have and to me, book recommendations are a fascinating issue.
+This external dataset allows us to take a deeper look at data-driven book recommendations.
+
+This kernel is split into three parts:
+
+* **Part I:** explores the dataset to find some interesting insights.  
+* **Part II:** introduces and demonstrates collaborative filtering .
+* **Part III:** creates a functioning book recommender app with shiny (to recommend some books (to me and you :-)).
+
+As an appetizer here you can access (just click on the image) the finished fully functional book recommender based on ratings of this dataset:
+
+[<img src="http://i.imgur.com/uKyBvijg.png">](https://philippsp.shinyapps.io/BookRecommendation/)
+
+Let's go.
+
+## Part I: Exploratory Analysis 
+
+### Read in the data
+We start by loading some libraries and reading in the two data files.
+```{r message=FALSE, warning=FALSE, results='hide'}
+library(recommenderlab)
+library(data.table)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(stringr)
+library(DT)
+library(knitr)
+library(grid)
+library(gridExtra)
+library(corrplot)
+library(qgraph)
+library(methods)
+library(Matrix)
+
+books <- fread('../books.csv')
+ratings <- fread('../ratings.csv')
+book_tags <- fread('../book_tags.csv')
+tags <- fread('../tags.csv')
+```
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+```
+
+
+### Have a look at the dataset {.tabset}
+
+First, let's have a look at the dataset. It consists of the files: `ratings.csv`, `books.csv`, `book_tags.csv`, `tags.csv`.  
+
+As the name suggests `ratings.csv` contains all users's ratings of the books (a total of 980k ratings, for 10,000 books, from 53,424 users), while `books.csv` contains more information on the books such as author, year, etc. `book_tags` contains all tag_ids users have assigned to that books and corresponding tag_counts, while `tags.csv` contains the tag_names corresponding to the tag_ids. 
+
+These two files are linked by the books' ids. 
+
+#### Ratings.csv
+```{r, result='asis', echo=FALSE}
+datatable(head(ratings, 10), class = "nowrap hover row-border", options = list(dom = 't',scrollX = FALSE, autoWidth = TRUE))
+```
+
+<br>
+```{r, echo=FALSE}
+glimpse(ratings)
+```
+
+#### Books.csv
+```{r, result='asis', echo=FALSE}
+datatable(head(books,5),  class = "nowrap hover row-border", options = list(dom = 't',scrollX = TRUE, autoWidth=TRUE, columnDefs = list(list(width = '200px', targets = c(8)),list(width = '300px', targets = c(10,11)))))
+```
+<br>
+```{r, echo=FALSE}
+glimpse(books)
+```
+
+#### Book_tags.csv
+```{r, result='asis', echo=FALSE}
+datatable(head(book_tags, 10), class = "nowrap hover row-border", options = list(dom = 't',scrollX = FALSE, autoWidth = TRUE))
+```
+
+<br>
+```{r, echo=FALSE}
+glimpse(book_tags)
+```
+
+#### Tags.csv
+```{r, result='asis', echo=FALSE}
+datatable(sample_n(tags, 10), class = "nowrap hover row-border", options = list(dom = 't',scrollX = FALSE, autoWidth = TRUE))
+```
+
+<br>
+```{r, echo=FALSE}
+glimpse(tags)
+```
+
+### Clean the dataset
+As with nearly any real-life dataset, we need to do some cleaning first. When exploring the data I noticed that for some combinations of user and book there are multiple ratings, while in theory there should only be one (unless users can rate a book several times). Furthermore, for the collaborative filtering in part II it is better to have more ratings per user. So I decided to remove users who have rated fewer than 3 books. 
+
+The data contains nearly 1mio rows, so for this step I found **[data.table](https://cran.r-project.org/web/packages/data.table/vignettes/datatable-intro.html)** to be significantly faster than dplyr. If you have not yet tried it out, I recommend you to do so. It helped me a lot e.g., in the Instacart competition. However, in the rest of this kernel I'll try to use dplyr, as I personally find it easier to read. 
+
+So let's first remove the duplicate ratings. 
+```{r}
+ratings[, N := .N, .(user_id, book_id)]
+## corresponding dplyr code
+# ratings %>% group_by(user_id, book_id) %>% mutate(n=n())
+cat('Number of duplicate ratings: ', nrow(ratings[N > 1]))
+ratings <- ratings[N == 1]
+
+```
+
+And then let's remove users who rated fewer than 3 books. 
+```{r}
+ratings[, N := .N, .(user_id)]
+## corresponding dplyr code
+# ratings %>% group_by(user_id) %>% mutate(n = n())
+cat('Number of users who rated fewer than 3 books: ', uniqueN(ratings[N <= 2, user_id]))
+ratings <- ratings[N > 2]
+```
+
+
+### Select a subset of users
+To reduce calculation times in this kernel, I select only a subset of users. (e.g., 20%)
+
+```{r, warning=FALSE}
+set.seed(1)
+user_fraction <- 0.2
+users <- unique(ratings$user_id)
+sample_users <- sample(users, round(user_fraction * length(users)))
+
+cat('Number of ratings (before): ', nrow(ratings))
+ratings <- ratings[user_id %in% sample_users]
+cat('Number of ratings (after): ', nrow(ratings))
+```
+
+### Let's start the Exploration
+#### What is the distribution of ratings?
+We see that people tend to give quite positive ratings to books. Most of the ratings are in the 3-5 range, while very few ratings are in the 1-2 range. 
+
+```{r}
+ratings %>% 
+  ggplot(aes(x = rating, fill = factor(rating))) +
+  geom_bar(color = "grey20") + scale_fill_brewer(palette = "YlGnBu") + guides(fill = FALSE)
+
+```
+
+#### Number of ratings per user
+As we filtered our ratings all users have at least 3 ratings. However, we can also see that are some users with many ratings. This is interesting, because we can later examine whether frequent raters rate books differently from less frequent raters. We will come back to this later. 
+```{r}
+ratings %>% 
+  group_by(user_id) %>% 
+  summarize(number_of_ratings_per_user = n()) %>% 
+  ggplot(aes(number_of_ratings_per_user)) + 
+  geom_bar(fill = "cadetblue3", color = "grey20") + coord_cartesian(c(3, 50))
+```
+
+#### Distribution of mean user ratings
+People have different tendencies to rate books. Some already give 5 stars to a mediocre book, while others do not give 5 stars unless it is the perfect book for them. Such tendencies can be seen in the figure below. On the right side there is a bump from users with a mean rating of 5, indicating that they really liked all books (or they only rated books they really like...). We can also see that there are nearly no notoriuous downvoters rating all books with a 1. Such tendencies are going to be important for collaborative filtering later, and are typically dealt with by subtracting the user's mean rating from their ratings.
+
+```{r}
+ratings %>% 
+  group_by(user_id) %>% 
+  summarize(mean_user_rating = mean(rating)) %>% 
+  ggplot(aes(mean_user_rating)) +
+  geom_histogram(fill = "cadetblue3", color = "grey20")
+```
+
+#### Number of ratings per book
+We can see that in the subsetted dataset most books have around 18-20 ratings. 
+```{r}
+ratings %>% 
+  group_by(book_id) %>% 
+  summarize(number_of_ratings_per_book = n()) %>% 
+  ggplot(aes(number_of_ratings_per_book)) + 
+  geom_bar(fill = "orange", color = "grey20", width = 1) + coord_cartesian(c(0,40))
+```
+
+#### Distribution of mean book ratings
+Mean book ratings don't reveal any peculiarities. 
+```{r}
+ratings %>% 
+  group_by(book_id) %>% 
+  summarize(mean_book_rating = mean(rating)) %>% 
+  ggplot(aes(mean_book_rating)) + geom_histogram(fill = "orange", color = "grey20") + coord_cartesian(c(1,5))
+```
+
+
+#### Distribution of Genres
+Extracting the genres of the books is not trivial since users assign self-chosen tags to books, which may or may not be the same
+as genres defined by goodreads. As a pragmatic way I chose only the tags the match those provided by goodbooks. This could be improved by grouping similar tags together (like 'self-help', 'self help' etc. to 'Self Help'). But I think my approach is fine for a first glance.
+
+We see that most books are "Fantasy", "Romance", or "Mistery" books, while there are not very many "Cookbooks" in the database.
+
+```{r}
+genres <- str_to_lower(c("Art", "Biography", "Business", "Chick Lit", "Children's", "Christian", "Classics", "Comics", "Contemporary", "Cookbooks", "Crime", "Ebooks", "Fantasy", "Fiction", "Gay and Lesbian", "Graphic Novels", "Historical Fiction", "History", "Horror", "Humor and Comedy", "Manga", "Memoir", "Music", "Mystery", "Nonfiction", "Paranormal", "Philosophy", "Poetry", "Psychology", "Religion", "Romance", "Science", "Science Fiction", "Self Help", "Suspense", "Spirituality", "Sports", "Thriller", "Travel", "Young Adult"))
+
+exclude_genres <- c("fiction", "nonfiction", "ebooks", "contemporary")
+genres <- setdiff(genres, exclude_genres)
+
+available_genres <- genres[str_to_lower(genres) %in% tags$tag_name]
+available_tags <- tags$tag_id[match(available_genres, tags$tag_name)]
+
+tmp <- book_tags %>% 
+  filter(tag_id %in% available_tags) %>% 
+  group_by(tag_id) %>%
+  summarize(n = n()) %>%
+  ungroup() %>%
+  mutate(sumN = sum(n), percentage = n / sumN) %>%
+  arrange(-percentage) %>%
+  left_join(tags, by = "tag_id")
+
+tmp %>% 
+  ggplot(aes(reorder(tag_name, percentage), percentage, fill = percentage)) + geom_bar(stat = "identity") + coord_flip() + scale_fill_distiller(palette = 'YlOrRd') + labs(y = 'Percentage', x = 'Genre')
+
+```
+
+
+
+
+
+#### Different languages
+You might have seen in the `books.csv` that there is language information on the books. This is interesting because goodreads is an english speaking site. However, the dataset contains some books in different languages. The reason is that typically there are multiple editions of a book (both in the same language and in different languages). For this dataset it seems that the most popular edition was included, which for some books is their original language. 
+
+```{r}
+p1 <- books %>% 
+  mutate(language = factor(language_code)) %>% 
+  group_by(language) %>% 
+  summarize(number_of_books = n()) %>% 
+  arrange(-number_of_books) %>% 
+  ggplot(aes(reorder(language, number_of_books), number_of_books, fill = reorder(language, number_of_books))) +
+  geom_bar(stat = "identity", color = "grey20", size = 0.35) + coord_flip() +
+  labs(x = "language", title = "english included") + guides(fill = FALSE)
+
+p2 <- books %>% 
+  mutate(language = factor(language_code)) %>% 
+  filter(!language %in% c("en-US", "en-GB", "eng", "en-CA", "")) %>% 
+  group_by(language) %>% 
+  summarize(number_of_books = n()) %>% 
+  arrange(-number_of_books) %>% 
+  ggplot(aes(reorder(language, number_of_books), number_of_books, fill = reorder(language, number_of_books))) +
+  geom_bar(stat = "identity", color = "grey20", size = 0.35) + coord_flip() +
+  labs(x = "", title = "english excluded") + guides(fill = FALSE)
+
+grid.arrange(p1,p2, ncol=2)
+```
+
+
+<br>
+
+#### Top 10 rated books
+It is apparent that users seem to like a) Calvin and Hobbes in general, b) compilations of books. This makes sense intuitively as people won't get interested in an entire compilation if they don't like the individual books. 
+
+```{r}
+books %>% 
+  mutate(image = paste0('<img src="', small_image_url, '"></img>')) %>% 
+  arrange(-average_rating) %>% 
+  top_n(10,wt = average_rating) %>% 
+  select(image, title, ratings_count, average_rating) %>% 
+  datatable(class = "nowrap hover row-border", escape = FALSE, options = list(dom = 't',scrollX = TRUE, autoWidth = TRUE))
+```
+
+<br><br>
+
+#### Top 10 popular books
+By looking at the books that were rated most often we can get an impression of the popularity of a book. You can see the top 10 popular books in the table below. 
+```{r, warning=FALSE}
+books %>% 
+  mutate(image = paste0('<img src="', small_image_url, '"></img>')) %>% 
+  arrange(-ratings_count) %>% 
+  top_n(10,wt = ratings_count) %>% 
+  select(image, title, ratings_count, average_rating) %>% 
+  datatable(class = "nowrap hover row-border", escape = FALSE, options = list(dom = 't',scrollX = TRUE, autoWidth = TRUE))
+
+```
+<br>  
+
+#### What influences a book's rating?
+Next, we can see, whether we can find any associations of features with a book's rating. 
+For a quick look, let's first plot the correlation matrix between the books average_rating and some variables.
+In summary, we see only small correlations between the features and the average rating (last row), indicating that there are no strong relationships between the rating a book receives and meta-variables (like rating counts etc.). This means that the rating depends more strongly on other features (e.g. the quality of the books itself). 
+
+```{r}
+tmp <- books %>% 
+  select(one_of(c("books_count","original_publication_year","ratings_count", "work_ratings_count", "work_text_reviews_count", "average_rating"))) %>% 
+  as.matrix()
+
+corrplot(cor(tmp, use = 'pairwise.complete.obs'), type = "lower")
+```
+<br><br>  
+
+#### Is there a relationship between the number of ratings and the average rating?
+
+Theoretically, it might be that the popularity of a book (in terms of the number of ratings it receives) is associated with the average rating it receives, such that once a book is becoming popular it gets better ratings. However, our data shows that
+this is true only to a very small extent. The correlation between these variables is only 0.045. 
+```{r}
+
+get_cor <- function(df){
+    m <- cor(df$x,df$y, use="pairwise.complete.obs");
+    eq <- substitute(italic(r) == cor, list(cor = format(m, digits = 2)))
+    as.character(as.expression(eq));                 
+}
+
+books %>% 
+  filter(ratings_count < 1e+5) %>% 
+  ggplot(aes(ratings_count, average_rating)) + stat_bin_hex(bins = 50) + scale_fill_distiller(palette = "Spectral") + 
+  stat_smooth(method = "lm", color = "orchid", size = 2) +
+  annotate("text", x = 85000, y = 2.7, label = get_cor(data.frame(x = books$ratings_count, y = books$average_rating)), parse = TRUE, color = "orchid", size = 7)
+```
+
+
+#### Multiple editions of each book
+The dataset contains information about how many editions of a book are available in `book_count`. These can either be different editions in the same language or also translations of the book into different languages. So one might assume, that the better the book is the more editions should be available. In fact, data show exactly the opposite pattern: The more editions a book has the lower is the average rating. The causal direction of this association is of course unclear here. 
+
+```{r}
+books %>% filter(books_count <= 500) %>% ggplot(aes(books_count, average_rating)) + stat_bin_hex(bins = 50) + scale_fill_distiller(palette = "Spectral") + 
+  stat_smooth(method = "lm", color = "orchid", size = 2) +
+  annotate("text", x = 400, y = 2.7, label = get_cor(data.frame(x = books$books_count, y = books$average_rating)), parse = TRUE, color = "orchid", size = 7)
+
+```
+
+#### Do frequent raters rate differently?
+
+It is possible, that users that rate more books (frequent raters) rate books differently from less frequent raters. The figure below
+explores this possibility. It seems like frequent raters tend to give lower ratings to books, maybe they are/become more critical the more they read and rate. That's interesting. 
+
+```{r}
+tmp <- ratings %>% 
+  group_by(user_id) %>% 
+  summarize(mean_rating = mean(rating), number_of_rated_books = n())
+
+tmp %>% filter(number_of_rated_books <= 100) %>% 
+  ggplot(aes(number_of_rated_books, mean_rating)) + stat_bin_hex(bins = 50) + scale_fill_distiller(palette = "Spectral") + stat_smooth(method = "lm", color = "orchid", size = 2, se = FALSE) +
+  annotate("text", x = 80, y = 1.9, label = get_cor(data.frame(x = tmp$number_of_rated_books, y = tmp$mean_rating)), color = "orchid", size = 7, parse = TRUE)
+
+```
+
+#### Series of books
+The data contains information in the `title` column about whether a certain book is part of a series (e.g. the Lord of the Rings trilogy).
+
+```{r}
+books %>% 
+  filter(str_detect(str_to_lower(title), '\\(the lord of the rings')) %>% 
+  select(book_id, title, average_rating) %>% 
+  datatable(class="nowrap hover row-border", options = list(dom = 't',scrollX = TRUE, autoWidth = TRUE))
+```
+<br>
+
+Given this, we can extract the series from the `title`, as it is always given in parantheses. Wen can then calculate features like the number of volumes in a series, and so forth. 
+
+Below, I examine whether books which are part of a larger series receive a higher rating. In fact the more volumes are in a series, the higher the average rating is.  
+
+```{r}
+books <- books %>% 
+  mutate(series = str_extract(title, "\\(.*\\)"), 
+         series_number = as.numeric(str_sub(str_extract(series, ', #[0-9]+\\)$'),4,-2)),
+         series_name = str_sub(str_extract(series, '\\(.*,'),2,-2))
+
+tmp <- books %>% 
+  filter(!is.na(series_name) & !is.na(series_number)) %>% 
+  group_by(series_name) %>% 
+  summarise(number_of_volumes_in_series = n(), mean_rating = mean(average_rating))
+  
+tmp %>% 
+  ggplot(aes(number_of_volumes_in_series, mean_rating)) + stat_bin_hex(bins = 50) + scale_fill_distiller(palette = "Spectral") +
+  stat_smooth(method = "lm", se = FALSE, size = 2, color = "orchid") +
+  annotate("text", x = 35, y = 3.95, label = get_cor(data.frame(x = tmp$mean_rating,  y = tmp$number_of_volumes_in_series)), color = "orchid", size = 7, parse = TRUE)
+
+```
+
+#### Is the sequel better than the original?
+We can also see that within a series, in fact the sequel is rated slightly better than the original. 
+```{r, fig.width=4, fig.height=5}
+books %>% 
+  filter(!is.na(series_name) & !is.na(series_number) & series_number %in% c(1,2)) %>% 
+  group_by(series_name, series_number) %>% 
+  summarise(m = mean(average_rating)) %>% 
+  ungroup() %>% 
+  group_by(series_name) %>% 
+  mutate(n = n()) %>% 
+  filter(n == 2) %>% 
+  ggplot(aes(factor(series_number), m, color = factor(series_number))) +
+  geom_boxplot() + coord_cartesian(ylim = c(3,5)) + guides(color = FALSE) + labs(x = "Volume of series", y = "Average rating") 
+
+```
+
+#### How long should a title be? 
+If you are an author, one of the most important choices is the title of a book. Of course the content of the title is important. However, it might also matter how long the title is. Below I therefore plot the average rating as a function of the length of the title (in words). We can see that there is in fact some variation in average rating depending on title length. Titles with 3 or 7 words seem to have slightly higher ratings. 
+
+```{r }
+books <- books %>% 
+  mutate(title_cleaned = str_trim(str_extract(title, '([0-9a-zA-Z]| |\'|,|\\.|\\*)*')),
+         title_length = str_count(title_cleaned, " ") + 1) 
+
+tmp <- books %>% 
+  group_by(title_length) %>% 
+  summarize(n = n()) %>% 
+  mutate(ind = rank(title_length))
+
+books %>% 
+  ggplot(aes(factor(title_length), average_rating, color=factor(title_length), group=title_length)) +
+  geom_boxplot() + guides(color = FALSE) + labs(x = "Title length") + coord_cartesian(ylim = c(2.2,4.7)) + geom_text(aes(x = ind,y = 2.25,label = n), data = tmp)
+```
+
+#### Does having a subtitle improve the book's rating?
+We see that books that have a subtitle get rated slightly higher than books without a subtitle. 
+
+```{r, fig.width=4, fig.height=5}
+books <- books %>% 
+  mutate(subtitle = str_detect(books$title, ':') * 1, subtitle = factor(subtitle))
+
+books %>% 
+  ggplot(aes(subtitle, average_rating, group = subtitle, color = subtitle)) + 
+  geom_boxplot() + guides(color = FALSE)
+
+```
+
+#### Does the number of authors matter?
+
+We all know the saying: "too many cooks spoil the broth."
+Is this also true for books? Looking at the plot below it seems to be exactly the opposite: The more authors a book has the higher is its average rating. 
+
+```{r}
+books <- books %>% 
+  group_by(book_id) %>% 
+  mutate(number_of_authors = length(str_split(authors, ",")[[1]]))
+
+books %>% filter(number_of_authors <= 10) %>% 
+  ggplot(aes(number_of_authors, average_rating)) + stat_bin_hex(bins = 50) + scale_fill_distiller(palette = "Spectral") +
+  stat_smooth(method = "lm", size = 2, color = "orchid", se = FALSE) + 
+  annotate("text", x = 8.5, y = 2.75, label = get_cor(data.frame(x = books$number_of_authors, y = books$average_rating)), color = "orchid", size = 7, parse = TRUE)
+```
+
+### Summary - Part I
+We identified some interesting aspects of this book datasets. In summary, observed effects on book rating are rather small, suggesting that book rating is mainly driven by other aspects, hopefully including the quality of the book itself. 
+In part II we are going to look at collaborative filtering and eventually build a recommender app in shiny in part III.
+
+## Part II: Collaborative Filtering
+
+Collaborative filtering is a standard method for product recommendations. To get the general idea consider this example:
+
+Imagine you want to read a new book, but you don't know which one might be worth reading. You have a certain friend, with whom you have talked about some books and you typically have had quite a similar opinion on those books. It would then be a good idea to ask this friend whether he read and liked some books that you don't know yet. These would be good candidates for your next book.
+
+What I described above is exactly the main idea of the so called user-based collaborative filtering. It works as follows:  
+
+1. You first identify other users similar to the current user in terms of their ratings on the same set of books.  
+  
+  *For example, if you liked all the "Lord of the rings" books, you identify users which also liked those books.*  
+2. If you found those similar users you take their average rating of books the current user has not yet read ...  
+ 
+  
+  *So, how did those "Lord of the rings" lovers rate other books? Maybe they rated "The Hobbit" very high.*  
+
+3. ... and recommend those books with the highest average rating to him.  
+ 
+    
+  *Accordingly, "The Hobbit" has a high average rating and might be recommended to you.*
+
+These three steps can easily be translated into an alogrithm. 
+
+However, before we can do that we have to restructure our data.
+For collaborative filtering data are usually structured that each row corresponds to a user and each column corresponds to a book.
+This could for example look like this, for 3 users and 5 books. Note that not every user rated every book.
+For example, user 1 only rated book 3, while user 2 rated book 1 and book 2. 
+
+```{r, echo=FALSE}
+matrix(data = c(NA, NA, 4, NA, NA, 2, 1, NA, NA, NA, NA, NA, 3, NA, 3), nrow = 3, ncol = 5, byrow = TRUE, dimnames = list(user_id = 1:3, book_id = 1:5))
+```
+
+To restructure our rating data from this dataset in the same way, we can do the following:
+```{r}
+dimension_names <- list(user_id = sort(unique(ratings$user_id)), book_id = sort(unique(ratings$book_id)))
+ratingmat <- spread(select(ratings, book_id, user_id, rating), book_id, rating) %>% select(-user_id)
+
+ratingmat <- as.matrix(ratingmat)
+dimnames(ratingmat) <- dimension_names
+ratingmat[1:5, 1:5]
+dim(ratingmat)
+```
+
+We see that our rating matrix has 9003 rows x 9999 columns, which is a lot of matrix elements. 
+Ok, now we have the data. 
+
+It's time to go through our 3 steps:
+
+### Step 1: Find similar users
+
+For this step we select users that have in common that they rated the same books. To make it easier let's select one example user "David" (user_id: 17329). First we select users that rated at least one book that David also rated. In total there are 440 users who have at least one book in common. 
+
+```{r}
+current_user <- "17329"
+rated_items <- which(!is.na((as.data.frame(ratingmat[current_user, ]))))
+selected_users <- names(which(apply(!is.na(ratingmat[ ,rated_items]), 1, sum) >= 2))
+head(selected_users, 40)
+```
+
+For these users, we can calculate the similarity of their ratings with "David"
+s ratings. There is a number of options to calculate similarity. Typically cosine similarity or pearson's correlation coefficient are used. Here, I chose pearson's correlation.
+We would now go through all the selected users and calculate the similarity between their and David's ratings. Below
+I do this for 2 users (user_ids: 1339 and 21877) for illustration. We can see that similarity is higher for user 1339 than user 21877 
+
+```{r}
+user1 <- data.frame(item=colnames(ratingmat),rating=ratingmat[current_user,]) %>% filter(!is.na(rating))
+user2 <- data.frame(item=colnames(ratingmat),rating=ratingmat["1339",]) %>% filter(!is.na(rating))
+tmp<-merge(user1, user2, by="item")
+tmp
+cor(tmp$rating.x, tmp$rating.y, use="pairwise.complete.obs")
+
+user2 <- data.frame(item = colnames(ratingmat), rating = ratingmat["21877", ]) %>% filter(!is.na(rating))
+tmp <- merge(user1, user2, by="item")
+tmp
+cor(tmp$rating.x, tmp$rating.y, use="pairwise.complete.obs")
+
+```
+
+To reduce the influence of interindividual differences in mean ratings (as discussed in the EDA section), you can normalize the a user's ratings by subtracting the users mean from all individual ratings. For example if a user rates 5 books with 1, 2, 3, 4, 5 his ratings would become -2, -1, 0, 1, 2.
+
+```{r}
+rmat <- ratingmat[selected_users, ]
+user_mean_ratings <- rowMeans(rmat,na.rm=T)
+rmat <- rmat - user_mean_ratings
+```
+
+We can calculate the similarity of all others users with David and sort them according to the highest similarity.
+```{r}
+similarities <- cor(t(rmat[rownames(rmat)!=current_user, ]), rmat[current_user, ], use = 'pairwise.complete.obs')
+sim <- as.vector(similarities)
+names(sim) <- rownames(similarities)
+res <- sort(sim, decreasing = TRUE)
+head(res, 40)
+```
+
+We can now select the 4 most similar users: 1339, 1449, 2347, 6290
+
+#### Visualizing similarities between users
+Similarities between users can be visualized using the qpraph package. The width of the graph's edges correspond to similarity (blue for positive correlations, red for negative correlations).
+```{r}
+sim_mat <- cor(t(rmat), use = 'pairwise.complete.obs')
+random_users <- selected_users[1:20]
+qgraph(sim_mat[c(current_user, random_users), c(current_user, random_users)], layout = "spring", vsize = 5, theme = "TeamFortress", labels = c(current_user, random_users))
+```
+
+### Step 2: Get predictions for other books
+
+In order to get recommendations for our user we would take the most similar users (e.g. 4) and average their ratings for books David has not yet rated. To make these averages more reliable you could also only include items that have been rated by multiple other similar users. 
+
+```{r}
+similar_users <- names(res[1:4])
+
+similar_users_ratings <- data.frame(item = rep(colnames(rmat), length(similar_users)), rating = c(t(as.data.frame(rmat[similar_users,])))) %>% filter(!is.na(rating))
+
+current_user_ratings <- data.frame(item = colnames(rmat), rating = rmat[current_user,]) %>% filter(!is.na(rating))
+
+predictions <- similar_users_ratings %>% 
+  filter(!(item %in% current_user_ratings$item)) %>% 
+  group_by(item) %>% summarize(mean_rating = mean(rating))
+
+predictions %>% 
+    datatable(class = "nowrap hover row-border", options = list(dom = 't',scrollX = TRUE, autoWidth = TRUE))
+
+```
+
+
+### Step 3: Recommend the best 5 predictions
+Given the results, we would sort the predictions with respect to their mean rating and recommend the highest rated books to David. In our case that would be books 1031, 2004, 3934, 5524, 7239. Please note that ratings are still normalized. 
+
+```{r}
+predictions %>% 
+  arrange(-mean_rating) %>% 
+  top_n(5, wt = mean_rating) %>% 
+  mutate(book_id = as.numeric(as.character(item))) %>% 
+  left_join(select(books, authors, title, book_id), by = "book_id") %>% 
+  select(-item) %>% 
+  datatable(class = "nowrap hover row-border", options = list(dom = 't',scrollX = TRUE, autoWidth = TRUE))
+```
+<br>  
+
+And that's already it. This is the basic principle of user-based collaborative filtering. Now we can get more practical and evaluate and compare some recommendation algorithms. 
+
+
+### Using recommenderlab
+
+Recommenderlab is a R-package that provides the infrastructure to evaluate and compare several collaborative-filtering algortihms. 
+Many algorithms are already implemented in the package, and we can use the available ones to save some coding effort, or add custom algorithms and use the infrastructure (e.g. crossvalidation).
+
+There is an important aspect concerning the representation of our rating matrix. 
+As we could already see above, most of the values in the rating matrix are missing, because every user just rated a few of the 10000 books. This allows us to represent this matrix is sparse format in order to save memory.
+
+```{r ,results='hide', message=FALSE, warning=FALSE}
+ratingmat0 <- ratingmat
+ratingmat0[is.na(ratingmat0)] <- 0
+sparse_ratings <- as(ratingmat0, "sparseMatrix")
+rm(ratingmat0)
+gc()
+```
+
+Recommenderlab uses as special variant of a sparse matrices, so we convert to this class first.
+```{r}
+real_ratings <- new("realRatingMatrix", data = sparse_ratings)
+real_ratings
+```
+
+Running an algorithm in Recommenderlab is really easy. All you have to do is call `Recommender()` and pass the data, select a method ("UBCF" - user-based collaborative filtering) and pass some params (e.g., the *method* for calculating similarity, e.g. *pearson*, and the number of most similar users used for the predictions, *nn*, e.g. 4).
+
+```{r}
+model <- Recommender(real_ratings, method = "UBCF", param = list(method = "pearson", nn = 4))
+```
+
+Creating predictions is then also straight-forward. You just call `predict()` and pass the model, the ratings for the user you want to predict ratings for, and a parameter to tell the function that you want to get predicted ratings back. 
+
+```{r}
+#Making predictions 
+prediction <- predict(model, real_ratings[current_user, ], type = "ratings")
+```
+
+Let's have a look at the best predictions for David:
+```{r}
+as(prediction, 'data.frame') %>% 
+  arrange(-rating) %>% .[1:5,] %>% 
+  mutate(book_id = as.numeric(as.character(item))) %>% 
+  left_join(select(books, authors, title, book_id), by = "book_id") %>% 
+  select(-item) %>% 
+  datatable(class = "nowrap hover row-border", escape = FALSE, options = list(dom = 't',scrollX = TRUE, autoWidth = TRUE))  
+```
+<br>   
+
+We see that recommendations are nearly the same compared to our basic algorithm described above. The top 4 recommended books are exactly the same ones. 
+
+
+#### More advanced ideas
+
+The procedure shown above is a quite simple process. You can do other smart things to improve the algorithm:  
+
+1. Instead of simply averaging the predictions of the similar users you can weight the ratings by similarity. This means that the more similar a user is to the current user the more weight his/her ratings receive in the calculation of the predictions.  
+
+2. The similarity calculation can also be weighted, according to how many books users co-rated. The more books users co-rated the more reliable is their similarity score.
+
+
+#### Evaluating the predictions
+
+The good thing about `Recommenderlab` is that it offers the possibility to easily evaluate and compare algorithms. In order to do so, one first has to create an evaluation scheme. Here, as an illustration I chose to do 10-fold crossvalidation. The *given* parameter determines how many ratings are given to create the predictions and in turn on how many predictions per user remain for the evaluation of the prediction. In this case -1 means that the predictions are calculated from all but 1 ratings, and performance is evaluated for 1  for each user. 
+
+```{r}
+scheme <- evaluationScheme(real_ratings[1:500,], method = "cross-validation", k = 10, given = -1, goodRating = 5)
+```
+
+In a second step, we can list all the algorithms we want to compare. As we have a tuneable parameter `nn`, which is the number of most similar users which are used to calculate the predictions. I vary this parameter from 5 to 50 and plot the RMSE. Furthermore, as a baseline one can also add an algorithm ("RANDOM") that randomly predicts a rating for each user.  
+
+```{r nn-comparison, warning=FALSE, message=FALSE}
+algorithms <- list("random" = list(name = "RANDOM", param = NULL),
+                   "UBCF_05" = list(name = "UBCF", param = list(nn = 5)),
+                   "UBCF_10" = list(name = "UBCF", param = list(nn = 10)),
+                   "UBCF_30" = list(name = "UBCF", param = list(nn = 30)),                   
+                   "UBCF_50" = list(name = "UBCF", param = list(nn = 50))
+                   )
+# evaluate the alogrithms with the given scheme            
+results <- evaluate(scheme, algorithms, type = "ratings")
+
+# restructure results output
+tmp <- lapply(results, function(x) slot(x, "results"))
+res <- tmp %>% 
+  lapply(function(x) unlist(lapply(x, function(x) unlist(x@cm[ ,"RMSE"])))) %>% 
+  as.data.frame() %>% 
+  gather(key = "Algorithm", value = "RMSE")
+
+res %>% 
+  ggplot(aes(Algorithm, RMSE, fill = Algorithm)) +
+  geom_bar(stat = "summary") + geom_errorbar(stat = "summary", width = 0.3, size = 0.8) +
+  coord_cartesian(ylim = c(0.6, 1.3)) + guides(fill = FALSE)
+```
+
+First, we can see that all algorithms perform better than chance. Second we can see, that RMSE decreases with increasing number of nearest neighbours `nn`.
+
+
+### Different algorithms
+It is also possible to compare the performace of different algorithms. The following algorithms are available:
+
+```{r}
+recommenderRegistry$get_entry_names()
+```
+
+You can get more information about these algorithms:
+```{r, eval = FALSE}
+recommenderRegistry$get_entries(dataType = "realRatingMatrix")
+```
+
+Here I compare UBCF with two additional algorithms, "popular" predicts ratings accoring to their mean_rating, SVD is matrix factorization approach. 
+
+```{r algorithm-comparison, fig.width=5}
+scheme <- evaluationScheme(real_ratings[1:500,], method = "cross-validation", k = 10, given = -1, goodRating = 5)
+
+algorithms <- list("random" = list(name = "RANDOM", param = NULL),
+                   "popular" = list(name = "POPULAR"),
+                   "UBCF" = list(name = "UBCF"),
+                   "SVD" = list(name = "SVD")
+                   )
+                   
+results <- evaluate(scheme, algorithms, type = "ratings", progress = FALSE)
+
+# restructure results output
+tmp <- lapply(results, function(x) slot(x, "results"))
+res <- tmp %>% 
+  lapply(function(x) unlist(lapply(x, function(x) unlist(x@cm[ ,"RMSE"])))) %>% 
+  as.data.frame() %>% 
+  gather(key = "Algorithm", value = "RMSE")
+
+res %>% 
+  mutate(Algorithm=factor(Algorithm, levels = c("random", "popular", "UBCF", "SVD"))) %>%
+  ggplot(aes(Algorithm, RMSE, fill = Algorithm)) + geom_bar(stat = "summary") + 
+  geom_errorbar(stat = "summary", width = 0.3, size = 0.8) + coord_cartesian(ylim = c(0.6, 1.3)) + 
+  guides(fill = FALSE)
+```
+
+### Summary Part II
+In collaborative filtering the main idea is to use ratings from similar users to create recommendations. The basic algorithm is easy to implement by hand, but there are some packages like Recommenderlab greatly simplyfying your work. 
+
+
+## Part III: Shiny app
+Now that we know how collaborative filtering works, it would be great to use this knowledge and put it into practice. So it would be really handy to have a real book recommender. 
+
+### General considerations
+
+One drawback of `recommenderlab` is that predictions for larger datasets take quite a lot of time. This is of course not what we want for an app. Therefore we have to find ways to speed up calculations. One easy way is to reduce the size of the rating matrix by only selecting a subset of users. However, this will usually come at the cost of worse performance.
+
+Another option is to optimize the code for collaborative filtering. Luckily, I found this **[blog-post](https://www.smartcat.io/blog/2017/improved-r-implementation-of-collaborative-filtering/)** describing such an optimization and also providing the corresponding functions in **[Github](https://github.com/smartcat-labs/collaboratory)**. Thank you very much for sharing this *Stefan Nikolic*.
+The github contains two important files `cf_algorithm.R`, which contains the collaborative filtering algorithm and prediction function, and the second file `simililarity_measures.R` which contains functions for calculating similarity matrices. 
+
+### Shiny App
+In order to create the shiny app, I took the ubcf implementation as linked to above and adapted it. 
+For this implementation for ubcf, data has to be provided as book x user matrix (in contrast to the user x book matrix I used above). I also subsampled only 20% of the rating data in order to further increase speed. 
+
+```{r}
+ratingmat <- sparseMatrix(ratings$book_id, ratings$user_id, x = ratings$rating) # book x user matrix
+ratingmat <- ratingmat[,unique(summary(ratingmat)$j)] # remove unselected users
+dimnames(ratingmat) <- list(book_id = as.character(1:10000), 
+                            user_id = as.character(sort(unique(ratings$user_id))))
+```
+
+#### Getting the predictions
+The following piece of code takes the new users ratings (as an example from the current user), runs the prediction, and then organizes the prediction results as top 20 recommendations. 
+If we look at the results we can see that they are not completely identical to our algorithm above, but we see a decent overlap: 4 of the top 5 from our basic algorithm above are within the top 12 recommendations from here as well. 
+
+```{r, include = FALSE}
+
+# ============================================================
+# Functions used in implementation of collaborative filtering.
+# ============================================================
+
+
+library(Matrix)
+library(recommenderlab)
+library(slam)
+library(data.table)
+
+
+#' Calculates rating predictions according to CF formula.
+#'
+#' @param ratings_matrix (dgCMatrix)
+#' @param similarity_matrix (dgCMatrix)
+#' @returns Matrix of predictions (dgCMatrix)
+calculate_predictions <- function(ratings_matrix, similarity_matrix){ 
+  
+  predictions <- ratings_matrix %*% similarity_matrix
+  
+  # Calculate normalization factor (sum of abs similarities).
+  # Put 1 in places where ratings exist.
+  ratings_matrix@x <- rep(1, length(ratings_matrix@x))
+  similarity_matrix@x <- abs(similarity_matrix@x)
+  sum_abs_similarities <- ratings_matrix %*% similarity_matrix
+  
+  # TODO: Check if sum_abs_similarities@x can contain zeros
+  predictions@x <- predictions@x / sum_abs_similarities@x
+  predictions
+}
+
+#' Calculates similarities between columns \code{columns_to_consider} from \code{matrix} vs all columns from \code{matrix}
+#'
+#' @param matrix (dgCMatrix)
+#' @param columns_to_consider (vector of integers) vector of indices of columns from \code{matrix}.
+#' @param similarity_metric Function used to calculate similarities. It has to accept two matrices (dgcMatrix) and  calculate similarities between columns.
+#' @param make_positive_similarities (logical) Whether all similarities should be modified by a factor in order to have only positive similarities.
+#' @param k (integer) Number of largest similarites to keep, per column (k nearest neighbours approach).
+#' @returns similarities matrix (dgCMatrix)
+#' @note  required Matrix, slam, data.table
+find_similarities <- function(matrix, columns_to_consider, similarity_metric, make_positive_similarities, k){
+  
+  selected_columns <- matrix[, columns_to_consider, drop=FALSE]
+  # similarities should be dgCMatrix with explicit zeros in places where similarity is zero.
+  similarities <- similarity_metric(matrix, selected_columns)
+  
+  # In order to keep explicit zeros we will change them to some value close to zero.
+  # Then we will set similarities of users/item to themselves to zero and drop those values.
+  similarities@x [similarities@x == 0] <- 0.000001
+  ind <- cbind(columns_to_consider, 1:length(columns_to_consider))
+  similarities[ind] <- 0
+  similarities <- drop0(similarities)
+  
+  # Make all similarities positive, if requested.
+  if(make_positive_similarities) {
+    if(min(similarities@x) < 0) similarities@x <- similarities@x + abs(min(similarities@x))
+  }
+  
+  if(!is.null(k) && k < nrow(similarities) - 1){ # if ALL - 1 that means we need all neigbours except that user/item
+    
+    # We will find k nearest neighbours by using slam::simple_triplet_matrix and data.table.
+    # Save dim and dimnames, in order to later reconstruct from simple_triplet_matrix. 
+    dims_old <- similarities@Dim
+    dimnames_old <- similarities@Dimnames
+    similarities <- as.simple_triplet_matrix(similarities)
+    datatable <- data.table(similarities$i, similarities$j, similarities$v)
+    names(datatable) <- c("row", "column", "rating")
+
+    # Function that finds k-th largest value in a vector.
+    kthMax <- function(vector, k){
+      vector <- vector[!is.na(vector)]
+      if(length(vector) <= k) min(vector)
+      else{
+        sort(vector, partial = length(vector) - (k-1))[length(vector) - (k-1)]
+      }
+    }
+
+    kthMaxes <- datatable[, kthMax(rating, k), by = column]
+    names(kthMaxes) <- c("column", "kthMax")
+    datatable <- merge(datatable, kthMaxes, by="column")
+    datatable <- datatable[datatable$rating >= datatable$kthMax, ]
+
+    similarities <- as(sparseMatrix(i = datatable$row, j = datatable$column, x = datatable$rating, dims = dims_old, dimnames = dimnames_old), "dgCMatrix")
+  }
+  
+  similarities
+}
+
+
+#' @note This function will probably be changed to inner function of \code{predict_cf} function.
+#'
+#' @param predictions_matrix (dgCMatrix) Matrix where all predictions are stored
+#' @param part_predictions (dgCMatrix) Part of all predictions. It has names of rows and columns (Dimnames) corresponding to real indices in predictions matrix.
+#' It contains predictions only for those rows and columns that exist in \code{predictions_matrix_indices}.
+#' @param predictions_matrix_indices Indices of predictions matrix where predictions should be stored.
+#' @returns Predictions matrix with added predictions (dgCMatrix)
+add_predictions_to_prediction_matrix <- function(predictions_matrix, part_predictions, predictions_matrix_indices){
+  
+  row_names <- as.integer(unlist(part_predictions@Dimnames[1])) # Real row indices from predictions matrix.
+  columns_names <- as.integer(unlist(part_predictions@Dimnames[2]))
+  row_info <- cbind(row_name = row_names, row_index = 1:length(row_names)) # row_index = row indices from part_predictions.
+  column_info <- cbind(column_name = columns_names, column_index = 1:length(columns_names))
+  
+  all_indices <- predictions_matrix_indices
+  colnames(all_indices) <- c("row_name", "column_name")
+  all_indices <- merge(all_indices, row_info)
+  all_indices <- merge(all_indices, column_info)
+  
+  predictions_matrix_indices <- all_indices[, c("row_name", "column_name")]
+  part_matrix_indices <- all_indices[, c("row_index", "column_index")]
+  
+  if(nrow(predictions_matrix_indices) > 0){
+    predictions_matrix[as.matrix(predictions_matrix_indices)] <- part_predictions[as.matrix(part_matrix_indices)]
+  }
+  
+  predictions_matrix
+}
+
+
+#' This function implements memory-based collaborative filtering and calculates rating predictions. It divides matrix into parts and calcualtes predictions for each part iteratively.
+#' This can be useful in case matrices are large and can not fit into memory.
+#'
+#' @param ratings_matrix (dgCMatrix) Matrix of known ratings. In case alg_method=="ubcf" it should be IU matrix (items are rows, users are columns).
+#' In case In case alg_method=="ibcf" it should be UI matrix.
+#' @param predictions_indices Indices of cells in ratings_matrix for which we should calculate predictions.
+#' @param alg_method (string) "ubcf" or "ibcf"
+#' @param normalization (logical) Whether to perform normalization. Currenlty only "center" normalization is supported (subtracting user's mean from ratings).
+#' This step currenlty uses {recommendlab} implementation for normalization.
+#' @param similarity_metric Function used to calculate similarities. It has to accept two matrices (dgcMatrix) and  calculate similarities between columns.
+#' @param k (integer) Number of largest similarites to keep, per column (k nearest neighbours approach).
+#' @param make_positive_similarities (logical) Whether all similarities should be modified by a factor in order to have only positive similarities.
+#' @param rowchunk_size (integer) How many rows of rating matrix to consider in one iteration. This can be uesful if matrices are large and we want to perform calculations partially.
+#' In case we want to cover all rows at once, set this parameter to be >= total number of rows in \code{ratings_matrix}.
+#' @param columnchunk_size (integer) How many columns of similarity matrix to consider in one iteration. This can be uesful if matrices are large and we want to perform calculations partially.
+#' In case we want to cover all columns at once, set this parameter to be >= total number of columns in \code{ratings_matrix}.
+#' @returns Predictions matrix.
+#' @note Returned predictions matrix may not contain predictions for all \code{predictions_indices}. This is because of CF algorithm itself 
+#' (in case there are no similar users/items which can be used to find a prediction, for example)
+#' @note required Matrix, recommenderlab, slam, data.table
+predict_cf <- function(ratings_matrix, predictions_indices, alg_method, normalization, similarity_metric, k, make_positive_similarities, rowchunk_size, columnchunk_size){
+  
+  if(normalization){
+    # Currently, we always use center normalization and apply it per users (subtracting user averages).
+    if(alg_method == "ubcf") ratings_matrix <- normalize(as(ratings_matrix, "realRatingMatrix"), method = "center", row = FALSE)
+    if(alg_method == "ibcf") ratings_matrix <- normalize(as(ratings_matrix, "realRatingMatrix"), method = "center", row = TRUE)
+    ratings_matrix@data@x[ratings_matrix@data@x == 0] <- 0.000001 # Prevent droping zeros obtained after applying normalization.
+    normalization_info <- ratings_matrix@normalize
+    ratings_matrix <- as(ratings_matrix, "dgCMatrix")
+  }
+  
+  # Create initial empty predictions matrix.
+  predictions_matrix <- as(sparseMatrix(i = c(), j = c(), dims = ratings_matrix@Dim, dimnames = ratings_matrix@Dimnames), "dgCMatrix")
+  
+  # Number of splits per rows and columns. 
+  num_row_splits <- ceiling(nrow(ratings_matrix)/rowchunk_size)
+  num_column_splits <- ceiling(ncol(ratings_matrix)/columnchunk_size) 
+  
+  # Iterate over columns first, so that each chunk of similarities is calcualated only once.
+  for(i in 1:num_column_splits){
+    
+    start_column <- columnchunk_size * (i-1) + 1 # Start column for the current chunk.
+    end_column <- columnchunk_size * i # End column for the current chunk.
+    if(ncol(ratings_matrix) < end_column){
+      end_column <- ncol(ratings_matrix)
+    }
+    
+    columns_to_consider <- intersect(start_column:end_column, predictions_indices[, 2])
+    if(length(columns_to_consider) == 0) next
+    
+    # Set names of rows and columns to be numbers (indices). 
+    # This way similarities and part_predictions, calculated in next steps, will use these names.
+    ratings_matrix@Dimnames[[1]] <- as.character(1:nrow(ratings_matrix))
+    ratings_matrix@Dimnames[[2]] <- as.character(1:ncol(ratings_matrix))
+    
+    similarities <- find_similarities(ratings_matrix, columns_to_consider, similarity_metric, make_positive_similarities, k)
+    
+    for(j in 1:num_row_splits){
+      
+      start_row <- rowchunk_size * (j-1) + 1 # Start row for the current chunk.
+      end_row <- rowchunk_size * j # End row for the current chunk.
+      if(nrow(ratings_matrix) < end_row){
+        end_row <- nrow(ratings_matrix)
+      }
+      
+      rows_to_consider <- intersect(start_row:end_row, predictions_indices[, 1])
+      if(length(rows_to_consider) == 0) next
+      
+      # print(paste("Current chunk: ", start_row, end_row, start_column, end_column, sep = ","))
+      part_predictions <- calculate_predictions(ratings_matrix[rows_to_consider, , drop = FALSE], similarities) # drop = FALSE because of the case when we have only one row, make it dgCMatrix.
+      
+      # Fill predictions matrix with predictions calculated in this iteration.
+      predictions_indices_to_consider <- subset(predictions_indices, predictions_indices[, 1] %in% rows_to_consider & predictions_indices[, 2] %in% columns_to_consider)
+      predictions_matrix <- add_predictions_to_prediction_matrix(predictions_matrix, part_predictions, predictions_indices_to_consider)
+    }
+    
+  }
+  
+  if(normalization){
+    temp <- as(predictions_matrix, "realRatingMatrix")
+    temp@normalize <- normalization_info
+    predictions_matrix <- denormalize(temp)
+    predictions_matrix <- as(predictions_matrix, "dgCMatrix")
+  }
+  
+  predictions_matrix
+}
+
+# ============================================================
+# Similarity measures for sparse matrices.
+# ============================================================
+
+#' Calculates correlations between columns of two sparse matrices.
+#'
+#' @param X (dgCMatrix)
+#' @param Y (dgCMatrix)
+#' @returns Matrix of correlations.
+#' @note Requeres {recommenderlab} package for normalization.
+cal_cor <- function(X, Y){
+
+  availX <- X!=0
+  availY <- Y!=0
+
+  # normalization
+  X<- as(normalize(as(X, "realRatingMatrix"), method = "center", row = FALSE), "dgCMatrix")
+  Y<- as(normalize(as(Y, "realRatingMatrix"), method = "center", row = FALSE), "dgCMatrix")
+
+  R <- crossprod(X,Y)
+  N <- crossprod(X^2, availY)
+  M <- crossprod(availX, Y^2)
+
+  cor <- R
+  cor@x <- cor@x/((N@x^0.5) * (M@x^0.5))
+
+  cor
+}
+
+#' Calculates cosine between columns of two sparse matrices.
+#'
+#' @param X (dgCMatrix)
+#' @param Y (dgCMatrix)
+#' @returns Matrix of cosine measures.
+cal_cos <- function(X, Y){
+  
+  ones <- rep(1,nrow(X))		
+  means <- drop(crossprod(X^2, ones)) ^ 0.5
+  diagonal <- Diagonal( x = means^-1 )
+  X <- X %*% diagonal
+  
+  ones <- rep(1,nrow(Y))		
+  means <- drop(crossprod(Y^2, ones)) ^ 0.5
+  diagonal <- Diagonal( x = means^-1 )
+  Y <- Y %*% diagonal
+  
+  crossprod(X, Y)
+}
+
+easy_cor <- function(X,Y){
+  X <- as(X,"matrix")
+  X[X==0]<-NA
+  Y <- as(Y,"matrix")
+  Y[Y==0]<-NA
+  tmp <- cor(X,Y,use='pairwise.complete.obs')
+  tmp[is.na(tmp)]<-0
+  tmp<-as(tmp,"sparseMatrix")  
+}
+
+```
+
+
+```{r}
+#source('cf_algorithm.R')
+#source('similarity_measures.R')
+
+# get the user ratings
+dat <- ratings[user_id == current_user] # these should later be input by the user
+
+# add the user ratings to the existing rating matrix
+user_ratings <- sparseMatrix(i = dat$book_id, 
+                             j = rep(1, nrow(dat)),
+                             x = dat$rating, 
+                             dims = c(nrow(ratingmat), 1), 
+                             dimnames = list(rownames(ratingmat), as.character(current_user)))
+rmat <- cbind(user_ratings, ratingmat[, colnames(ratingmat) != current_user])
+
+# get the indices of which cells in the matrix should be predicted
+# here I chose to predict all books the current user has not yet rated
+items_to_predict <- setdiff(1:nrow(rmat), dat$book_id)
+users <- 1
+prediction_indices <- as.matrix(expand.grid(items_to_predict, users))
+
+# run the cf-alogrithm
+res <- predict_cf(rmat, prediction_indices, "ubcf", TRUE, easy_cor, 4, FALSE, 2000, 1000)
+
+# sort and organize the results
+user_results <- sort(res[, users], decreasing = TRUE)[1:15]
+user_predicted_ids <- as.numeric(names(user_results))
+user_results <- data.table(Book_id = user_predicted_ids, 
+                           Author = books$authors[user_predicted_ids], 
+                           Title = books$title[user_predicted_ids], 
+                           Predicted_rating = user_results)
+
+user_results %>% 
+    datatable(class = "nowrap hover row-border", options = list(dom = 'tp', scrollX = TRUE, autoWidth = TRUE))
+```
+
+#### Performance comparison
+We can see that the optimization of the alogrithm gained as an ~ 10-15x increase in speed. Now this looks really promising for our Shiny App. 
+```{r}
+testdat <- real_ratings[rownames(real_ratings) != current_user, ]
+start <- Sys.time()
+model <- Recommender(testdat, method = "UBCF", param = list(method = "pearson", nn = 4))
+prediction <- predict(model, real_ratings[current_user, ], type = "ratings")
+cat('recommderlab ubcf: ', Sys.time() - start)
+
+start <- Sys.time()
+res <- predict_cf(rmat, prediction_indices, "ubcf", TRUE, cal_cor, 4, FALSE, 2000, 1000)
+cat('optimized ubcf: ', Sys.time() - start)
+```
+
+
+### Building the app
+The actual building and deployment of the app are really easy as well. Actually you just need to create two files `ui.R` and `server.R`. I will share my code for those soon on Github after some cleaning and improvements. 
+`ui.R` contains the static UI interface, which is basically a dashboard with two big boxes (one for the user ratings and one for the recommendations). 
+
+`server.R` firstly populates the user rating box with books which can be rated, secondly calculates the recommendations when the user hits the button, and thirdly populates the box for the recommendations.
+
+To improve user experience I added 3 nice things (my thanks go to the creators of these): 
+  
+1. I added stars as ratings (with the package `ShinyRatingInput`, which can be found **[here](https://github.com/stefanwilhelm/ShinyRatingInput)**). Many thanks to Stefan Wilhelm.
+
+2. As calculation of recommendations still takes some time, I added a busy indicator to the button click.
+The code is taken from **[here](https://github.com/daattali/advanced-shiny/tree/master/busy-indicator)**. Many thanks to Dean Attali. 
+
+3. I added minimal Javascript code to minimize the user rating box after the submit button was hit. This is done with the help of `shinyJS`, which is also written by Dean Attali, see **[here](https://github.com/daattali/shinyjs)**. Thank you very much.
+
+Finally, deploying the app is a matter of seconds. Just create an account on shinyapps.io and tell Rstudio to *publish* your app, see **[here](http://docs.rstudio.com/shinyapps.io/)** for more instructions.
+
+### Summary Part III
+That's it. When I started this project I had not done too much collaborative filtering, but after seeing this dataset I was really fascinated to create a fully working book recommendation app. There is still some room for improvement, but I hope that you could take away something from this kernel.   
+
+And if you need to know which book to read next, you know where to go :-):
+
+**[Book Recommender](https://philippsp.shinyapps.io/BookRecommendation/)**  
+
+The source code for the shiny app can be found on my **[Github](https://github.com/pspachtholz/BookRecommender)**.
+
+If you found this kernel interesting you can make me happy by **upvoting** it. 
+
